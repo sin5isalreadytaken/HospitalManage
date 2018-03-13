@@ -1,0 +1,22 @@
+医生：查询挂号信息：SELECT DISTINCT Time,Pno FROM REGISTER WHERE Ono = ono;//ono是医生所属科室号
+      查询病人病历：SELECT Pmh FORM PATIENT WHERE Pno = pno;//pno是病人学号
+      删除挂号信息：DELETE FROM REGISTER WHERE Pno = pno AND Ono = ono;//pno,ono分别是病人学号和医生所属科室号
+      修改病人病历：UPDATE REGISTER SET Pmh = pmh WHERE Pno = pno;//pmh是病历，包含旧病历，pno是病人学号
+药房：查询药品信息：SELECT * FROM MEDICINE WHERE Mno = mno;//mno是药品代号
+      修改药品信息：UPDATE MEDICINE SET Mname = mname,Mnum += updatemnum,Mprice = mprice WHERE Mno = mno;//mname,updatemnum,mprice分别是药品名称，库存加减数和药品价格
+      增加药品信息：INSERT INTO MEDICINE VALUES('mno','mname','mnum','mprice');//mno,mname,mnum,mprice分别是药品代号，名称，库存，价格
+      删除药品信息：DELETE FROM MEDICINE WHERE Mno = mno;//mno是药品代号
+住院部：查询住院信息：SELECT Bno FROM PATIENT WHERE Pno = pno;//pno是病人学号
+        查询空床信息：SELECT Bno FROM SICKROOM WHRER Bstate = 0;
+        增加住院信息（触发修改病房信息）：UPDATE PATIENT SET Bno = bno WHERE Pno = pno;//pno,bno分别是病人学号和病床号
+        删除住院信息（触发修改病房信息）：UPDATE PATIENT SET Bno = NULL WHERE Pno = pno;//pno,bno分别是病人学号和病床号
+挂号处：增加挂号信息（触发增加病人信息）：INSERT INTO REGISTER VALUES('pno','ono','time');//pno,ono,time分别是病人学号，挂号科室号和挂号时间
+管理员：查询医生信息：SELECT * FROM DOCTOR WHERE Dno = dno;//dno是医生代号
+        查询护士信息：SELECT * FROM NURSE WHERE Nno = nno;//nno是护士代号
+        增加医生信息：INSERT INTO DOCTOR VALUES('dno','dname','dsex','dage','dtitle','ono');//dno,dname,dsex,dage,dtitle,ono分别是医生代号，姓名，性别，年龄，职称和所属科室号
+        删除医生信息：DELETE FROM DOCTOR WHERE Dno = dno;//dno是医生代号
+        修改医生信息：UPDATE DOCTOR SET Dname = dname,Dsex = dsex,Dage = dage,Dtitle = dtitle,Ono = ono WHERE Dno = dno;//dno,dname,dsex,dage,dtitle,ono分别是医生代号，姓名，性别，年龄，职称和所属科室号
+        修改护士信息：UPDATE NURSE SET Nname = nname,Nsex = nsex,Nage = nage,Ntitle = ntitle WHERE Nno = nno;//nno,nname,nsex,nage,ntitle分别是护士代号，姓名，性别，年龄和职称
+PATIENT触发器：CREATE TRIGGER ADDHOSPITALIZATION BEFORE UPDATE ON PATIENT REFERENCING OLDROW AS OldTuple NEWROW AS NewTuple FOR EACH STATEMENT WHEN(NewTuple.Bno != NULL) UPDATE SICKROOM SET Bstate = 1 WHERE Bno = OldTuple.Bno;
+               CREATE TRIGGER MINUSHOSPITALIZATION AFTER UPDATE ON PATIENT REFERENCING OLDROW AS OldTuple NEWROW AS NewTuple FOR EACH STATEMENT WHEN(NewTuple.Bno == NULL) UPDATE SICKROOM SET Bstate = 0 WHERE Bno = OldTuple.Bno;
+REGISTER触发器：CREATE TRIGGER ADDREGISTER AFTER INSERT ON REGISTER REFERENNCING OLDROW AS OldTuple NEWROW AS NewTuple FOR EACH STATEMENT WHEN(NewTuple.Pno NOT IN SELECT Pno FROM PATIENT) INSERT INTO PATIENT VALUES('pno','pname','psex','page',NULL,NULL);
